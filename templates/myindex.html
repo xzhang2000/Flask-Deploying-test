@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="数据可视化测试网站">
+    <meta name="author" content="">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <title>数据可视化测试网站</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="static/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link rel="stylesheet" href="static/assets/css/templatemo-chain-app-dev.css">
+    <link rel="stylesheet" href="static/assets/css/animated.css">
+    <link rel="stylesheet" href="static/assets/css/owl.css">
+
+    <style>
+      /* 修改顶部导航栏为固定定位 */
+      .header-area {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 9999;
+        background-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+      }
+      
+      /* 导航栏滚动效果 */
+      .header-area.header-sticky {
+        background-color: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+      }
+      
+      /* 调整页面内容的上边距，避免被固定导航栏遮挡 */
+      .full-page {
+        min-height: 100vh;
+        width: 100%;
+        padding-top: 100px; /* 增加上边距，为固定导航栏留出空间 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      
+      /* 主页部分特殊处理 */
+      #home.full-page {
+        padding-top: 0; /* 主页不需要额外上边距，因为导航栏是透明的 */
+      }
+      
+      /* 主页内容垂直居中调整 */
+      #home .container {
+        padding-top: 80px; /* 给导航栏留出空间 */
+      }
+      
+      .page-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        background: linear-gradient(45deg, #4a6cf7, #6a11cb);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-align: center;
+      }
+      
+      .page-subtitle {
+        font-size: 1.2rem;
+        color: #666;
+        max-width: 600px;
+        margin: 0 auto 3rem auto;
+        text-align: center;
+        line-height: 1.6;
+      }
+      
+      .page-section {
+        padding: 80px 0;
+      }
+      
+      .page-divider {
+        position: relative;
+        height: 100px;
+        overflow: hidden;
+      }
+      
+      .page-divider .divider-content {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .page-divider .divider-content:hover {
+        transform: translateX(-50%) translateY(-10px);
+      }
+      
+      .page-divider .divider-arrow {
+        font-size: 3rem;
+        color: #4a6cf7;
+        animation: bounce 2s infinite;
+      }
+      
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-20px);
+        }
+        60% {
+          transform: translateY(-10px);
+        }
+      }
+      
+      /* 数据表格样式 */
+      .data-table-container {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .data-table-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+      }
+      
+      .data-table-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #4a6cf7;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .data-table-title i {
+        color: #4a6cf7;
+      }
+      
+      .data-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      }
+      
+      .data-table thead {
+        background: linear-gradient(135deg, #4a6cf7, #6a11cb);
+      }
+      
+      .data-table th {
+        color: white;
+        padding: 15px;
+        text-align: left;
+        font-weight: 500;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .data-table tbody tr {
+        transition: background-color 0.2s ease;
+      }
+      
+      .data-table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+      
+      .data-table tbody tr:hover {
+        background-color: #e3f2fd;
+      }
+      
+      .data-table td {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        color: #555;
+      }
+      
+      .badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      
+      .badge-success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      
+      .badge-warning {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+      
+      .badge-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      
+      .btn-sm {
+        padding: 6px 15px;
+        font-size: 0.85rem;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+      }
+      
+      .btn-sm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      /* 图表容器样式 */
+      .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .chart-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+      }
+      
+      .chart-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #4a6cf7;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .chart-title i {
+        color: #4a6cf7;
+      }
+      
+      .chart-placeholder {
+        height: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        text-align: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 10px;
+        border: 2px dashed #c3cfe2;
+      }
+      
+      .chart-placeholder i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.7;
+      }
+      
+      .chart-controls {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }
+      
+      .chart-controls button {
+        padding: 8px 20px;
+        background: #4a6cf7;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .chart-controls button:hover {
+        background: #3a5ce5;
+        transform: translateY(-2px);
+      }
+      
+      /* 特征项目样式 */
+      .feature-item {
+        text-align: center;
+        padding: 20px;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+      }
+      
+      .feature-item:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+      }
+      
+      .feature-item i {
+        font-size: 2.5rem;
+        color: #4a6cf7;
+        margin-bottom: 15px;
+      }
+      
+      .feature-item h5 {
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #333;
+      }
+      
+      .feature-item p {
+        color: #666;
+        font-size: 0.9rem;
+      }
+      
+      /* 主页透明导航栏 */
+      #home .header-area {
+        background-color: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+      
+      #home .header-area.header-sticky {
+        background-color: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+      }
+      
+      /* 主页导航菜单样式 */
+      #home .nav li a {
+        color: white !important;
+      }
+      
+      #home .nav li a.active {
+        color: #4a6cf7 !important;
+        background-color: white;
+        border-radius: 5px;
+      }
+      
+      #home .gradient-button a {
+        background: white;
+        color: #4a6cf7 !important;
+      }
+      
+      /* 响应式调整 */
+      @media (max-width: 768px) {
+        .header-area {
+          padding: 10px 0;
+        }
+        
+        .page-title {
+          font-size: 2.2rem;
+        }
+        
+        .full-page {
+          padding-top: 80px;
+        }
+        
+        .data-table-container,
+        .chart-container {
+          padding: 20px;
+        }
+        
+        .data-table th,
+        .data-table td {
+          padding: 10px;
+          font-size: 0.85rem;
+        }
+        
+        .feature-item {
+          margin-bottom: 20px;
+        }
+      }
+      
+      /* 滚动进度条 */
+      .scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 4px;
+        background: linear-gradient(to right, #4a6cf7, #6a11cb);
+        z-index: 10000;
+        transition: width 0.3s ease;
+      }
+    </style>
+  </head>
+
+<body>
+
+  <!-- 滚动进度条 -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- ***** Preloader Start ***** -->
+  <div id="js-preloader" class="js-preloader">
+    <div class="preloader-inner">
+      <span class="dot"></span>
+      <div class="dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+  <!-- ***** Preloader End ***** -->
+
+  <!-- ***** Header Area Start ***** (固定在顶部) -->
+  <header class="header-area header-sticky wow slideInDown" data-wow-duration="0.75s" data-wow-delay="0s">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <nav class="main-nav">
+            <!-- ***** Menu Start ***** -->
+            <ul class="nav">
+              <li class="scroll-to-section"><a href="/index" class="active">主页</a></li>
+              <li class="scroll-to-section"><a href="/datalist">数据信息列表</a></li>
+              <li class="scroll-to-section"><a href="/chart">数据图表</a></li>
+              <li class="scroll-to-section"><a href="/wordcloud">词云</a></li>
+              <li><div class="gradient-button"><a id="modal_trigger" href="#modal"><i class="fa fa-sign-in-alt"></i>  登录/注册</a></div></li> 
+            </ul>        
+            <a class='menu-trigger'>
+                <span>Menu</span>
+            </a>
+            <!-- ***** Menu End ***** -->
+          </nav>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!-- ***** Header Area End ***** -->
+  
+  <!-- 登录弹窗 (保持不变) -->
+  <div id="modal" class="popupContainer" style="display:none;">
+    <!-- ... 登录弹窗内容保持不变 ... -->
+  </div>
+
+  <!-- ***** 主页部分 (第一页) ***** -->
+  <section id="home" class="full-page" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 offset-lg-2 text-center">
+          <div class="wow fadeInUp" data-wow-duration="1s" data-wow-delay="0.3s">
+            <h1 class="page-title" style="color: white;">数据可视化测试网站</h1>
+            <p class="page-subtitle" style="color: rgba(255,255,255,0.9);">
+              这是一个基于Python Flask框架的数据可视化学习项目，通过直观的图表和表格展示数据分析结果，帮助您更好地理解和探索数据。
+            </p>
+            <div class="mt-5">
+              <a href="/index" class="btn btn-light btn-lg scroll-to-section" style="margin-right: 15px;">
+                <i class="fas fa-table"></i> 查看数据列表
+              </a>
+              <a href="/chart" class="btn btn-outline-light btn-lg scroll-to-section">
+                <i class="fas fa-chart-bar"></i> 查看数据图表
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 向下滚动指示器 -->
+    <div class="page-divider">
+      <div class="divider-content">
+        <a href="/index" class="scroll-to-section">
+          <i class="fas fa-chevron-down divider-arrow"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ***** 数据信息列表部分 (第二页) ***** -->
+  <section id="data-list" class="full-page page-section" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+          <div class="section-heading wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
+            <h2 class="page-title">数据信息列表</h2>
+            <p class="page-subtitle">实时数据展示，包含用户信息、销售数据等多种类型的数据表格，支持排序、筛选和导出功能。</p>
+          </div>
+          
+          <!-- 用户数据表 -->
+          <div class="data-table-container wow fadeInUp" data-wow-duration="1s" data-wow-delay="0.6s">
+            <h4 class="data-table-title"><i class="fas fa-users"></i> 用户数据表</h4>
+            <div class="table-responsive">
+              <table class="table data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>邮箱</th>
+                    <th>注册时间</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>001</td>
+                    <td>张三</td>
+                    <td>zhangsan@example.com</td>
+                    <td>2024-01-15</td>
+                    <td><span class="badge badge-success">活跃</span></td>
+                    <td><button class="btn btn-sm btn-primary" onclick="viewUser(1)">查看详情</button></td>
+                  </tr>
+                  <tr>
+                    <td>002</td>
+                    <td>李四</td>
+                    <td>lisi@example.com</td>
+                    <td>2024-02-20</td>
+                    <td><span class="badge badge-warning">待验证</span></td>
+                    <td><button class="btn btn-sm btn-primary" onclick="viewUser(2)">查看详情</button></td>
+                  </tr>
+                  <tr>
+                    <td>003</td>
+                    <td>王五</td>
+                    <td>wangwu@example.com</td>
+                    <td>2024-03-10</td>
+                    <td><span class="badge badge-success">活跃</span></td>
+                    <td><button class="btn btn-sm btn-primary" onclick="viewUser(3)">查看详情</button></td>
+                  </tr>
+                  <tr>
+                    <td>004</td>
+                    <td>赵六</td>
+                    <td>zhaoliu@example.com</td>
+                    <td>2024-04-05</td>
+                    <td><span class="badge badge-danger">禁用</span></td>
+                    <td><button class="btn btn-sm btn-primary" onclick="viewUser(4)">查看详情</button></td>
+                  </tr>
+                  <tr>
+                    <td>005</td>
+                    <td>钱七</td>
+                    <td>qianqi@example.com</td>
+                    <td>2024-05-18</td>
+                    <td><span class="badge badge-success">活跃</span></td>
+                    <td><button class="btn btn-sm btn-primary" onclick="viewUser(5)">查看详情</button></td>
+                  </tr>
+                  <tr>
+                    <td>006</td>
+                    <td>孙八</td>
+                    <td>sunba@example.com</td>
+                    <td>2024-06-22</td>
+                    <td><span class="badge badge-warning">待验证</span></td>
+                    <td><button class="btn btn-sm btn-primary" onclick="viewUser(6)">查看详情</button></td>
+                  </tr>
+                  <tr>
+                    <td>007</td>
+                    <td>周九</td>
+                    <td>zhoujiu@example.com</td>
+                    <td>2024-07-30</td>
+                    <td><span class="badge badge-success">活跃</span></td>
+                    <td><button class="btn btn-sm btn-primary" onclick="viewUser(7)">查看详情</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="text-center mt-3">
+              <button class="btn btn-outline-primary" onclick="loadMoreUsers()">加载更多用户</button>
+              <button class="btn btn-link" onclick="exportData('user')">导出CSV</button>
+            </div>
+          </div>
+          
+          <!-- 销售数据表 -->
+          <div class="data-table-container wow fadeInUp" data-wow-duration="1s" data-wow-delay="0.7s">
+            <h4 class="data-table-title"><i class="fas fa-chart-line"></i> 销售数据表</h4>
+            <div class="table-responsive">
+              <table class="table data-table">
+                <thead>
+                  <tr>
+                    <th>订单号</th>
+                    <th>产品名称</th>
+                    <th>数量</th>
+                    <th>单价</th>
+                    <th>总价</th>
+                    <th>销售日期</th>
+                    <th>销售员</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>ORD-2024-001</td>
+                    <td>笔记本电脑</td>
+                    <td>2</td>
+                    <td>¥4,500.00</td>
+                    <td>¥9,000.00</td>
+                    <td>2024-05-10</td>
+                    <td>张三</td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2024-002</td>
+                    <td>智能手机</td>
+                    <td>5</td>
+                    <td>¥2,800.00</td>
+                    <td>¥14,000.00</td>
+                    <td>2024-05-12</td>
+                    <td>李四</td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2024-003</td>
+                    <td>平板电脑</td>
+                    <td>3</td>
+                    <td>¥3,200.00</td>
+                    <td>¥9,600.00</td>
+                    <td>2024-05-15</td>
+                    <td>王五</td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2024-004</td>
+                    <td>智能手表</td>
+                    <td>8</td>
+                    <td>¥899.00</td>
+                    <td>¥7,192.00</td>
+                    <td>2024-05-18</td>
+                    <td>赵六</td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2024-005</td>
+                    <td>蓝牙耳机</td>
+                    <td>12</td>
+                    <td>¥299.00</td>
+                    <td>¥3,588.00</td>
+                    <td>2024-05-20</td>
+                    <td>钱七</td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2024-006</td>
+                    <td>显示器</td>
+                    <td>4</td>
+                    <td>¥1,599.00</td>
+                    <td>¥6,396.00</td>
+                    <td>2024-05-22</td>
+                    <td>孙八</td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2024-007</td>
+                    <td>键盘鼠标套装</td>
+                    <td>20</td>
+                    <td>¥199.00</td>
+                    <td>¥3,980.00</td>
+                    <td>2024-05-25</td>
+                    <td>周九</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="text-center mt-3">
+              <button class="btn btn-outline-primary" onclick="loadMoreSales()">加载更多销售记录</button>
+              <button class="btn btn-link" onclick="exportData('sales')">导出CSV</button>
+            </div>
+          </div>
+          
+          <div class="text-center mt-5">
+            <a href="/chart" class="btn btn-primary btn-lg scroll-to-section">
+              <i class="fas fa-arrow-down"></i> 查看数据图表
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ***** 数据图表部分 (第三页) ***** -->
+  <section id=/chart" class="full-page page-section" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+          <div class="section-heading wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
+            <h2 class="page-title">数据可视化图表</h2>
+            <p class="page-subtitle">通过多种可视化图表展示数据趋势和分布情况，支持交互式操作和动态更新。</p>
+          </div>
+          
+          <div class="row">
+            <!-- 柱状图 -->
+            <div class="col-lg-6">
+              <div class="chart-container wow fadeInLeft" data-wow-duration="1s" data-wow-delay="0.6s">
+                <h4 class="chart-title"><i class="fas fa-chart-bar"></i> 月度销售趋势</h4>
+                <div class="chart-placeholder">
+                  <i class="fas fa-chart-bar"></i>
+                  <h5>柱状图展示</h5>
+                  <p>各月份销售金额对比</p>
+                  <small>使用 Chart.js 或 ECharts 渲染</small>
+                </div>
+                <div class="chart-controls">
+                  <button onclick="changeChartType('bar', 'monthly')">年度视图</button>
+                  <button onclick="changeChartType('bar', 'quarterly')">季度视图</button>
+                  <button onclick="changeChartType('bar', 'monthly')">月度视图</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 饼图 -->
+            <div class="col-lg-6">
+              <div class="chart-container wow fadeInRight" data-wow-duration="1s" data-wow-delay="0.7s">
+                <h4 class="chart-title"><i class="fas fa-chart-pie"></i> 产品销售占比</h4>
+                <div class="chart-placeholder">
+                  <i class="fas fa-chart-pie"></i>
+                  <h5>饼图展示</h5>
+                  <p>各类产品销售额占比</p>
+                  <small>支持点击查看详情</small>
+                </div>
+                <div class="chart-controls">
+                  <button onclick="changeChartType('pie', 'category')">按类别</button>
+                  <button onclick="changeChartType('pie', 'region')">按区域</button>
+                  <button onclick="changeChartType('pie', 'salesman')">按销售员</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row mt-4">
+            <!-- 折线图 -->
+            <div class="col-lg-8">
+              <div class="chart-container wow fadeInLeft" data-wow-duration="1s" data-wow-delay="0.8s">
+                <h4 class="chart-title"><i class="fas fa-chart-line"></i> 年度增长趋势</h4>
+                <div class="chart-placeholder">
+                  <i class="fas fa-chart-line"></i>
+                  <h5>折线图展示</h5>
+                  <p>近五年销售增长趋势</p>
+                  <small>支持多系列数据对比</small>
+                </div>
+                <div class="chart-controls">
+                  <button onclick="changeChartType('line', '5years')">5年趋势</button>
+                  <button onclick="changeChartType('line', '3years')">3年趋势</button>
+                  <button onclick="changeChartType('line', 'monthly')">月度趋势</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 雷达图 -->
+            <div class="col-lg-4">
+              <div class="chart-container wow fadeInRight" data-wow-duration="1s" data-wow-delay="0.9s">
+                <h4 class="chart-title"><i class="fas fa-bullseye"></i> 数据分布</h4>
+                <div class="chart-placeholder">
+                  <i class="fas fa-bullseye"></i>
+                  <h5>雷达图展示</h5>
+                  <p>多维度数据对比</p>
+                  <small>支持动态切换维度</small>
+                </div>
+                <div class="chart-controls">
+                  <button onclick="changeChartType('radar', 'performance')">性能指标</button>
+                  <button onclick="changeChartType('radar', 'sales')">销售指标</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row mt-4">
+            <!-- 地图热力图 -->
+            <div class="col-lg-12">
+              <div class="chart-container wow fadeInUp" data-wow-duration="1s" data-wow-delay="1s">
+                <h4 class="chart-title"><i class="fas fa-map-marked-alt"></i> 地理数据分布</h4>
+                <div class="chart-placeholder">
+                  <i class="fas fa-map-marked-alt"></i>
+                  <h5>地图热力图展示</h5>
+                  <p>各区域销售热度分布</p>
+                  <small>使用 Pyecharts 或 Mapbox 渲染</small>
+                </div>
+                <div class="chart-controls">
+                  <button onclick="changeChartType('map', 'china')">全国分布</button>
+                  <button onclick="changeChartType('map', 'province')">省份分布</button>
+                  <button onclick="changeChartType('map', 'world')">全球分布</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row mt-5">
+            <div class="col-lg-12">
+              <div class="section-heading text-center">
+                <h4>图表功能说明</h4>
+                <p>以上图表区域为预留位置，实际开发中可通过以下方式实现数据可视化：</p>
+                <div class="row mt-4">
+                  <div class="col-lg-3 col-md-6">
+                    <div class="feature-item">
+                      <i class="fas fa-code"></i>
+                      <h5>Python后端生成</h5>
+                      <p>使用 Matplotlib, Plotly, Pyecharts 等库生成图表</p>
+                    </div>
+                  </div>
+                  <div class="col-lg-3 col-md-6">
+                    <div class="feature-item">
+                      <i class="fas fa-laptop-code"></i>
+                      <h5>前端JS渲染</h5>
+                      <p>使用 Chart.js, ECharts, D3.js 动态渲染图表</p>
+                    </div>
+                  </div>
+                  <div class="col-lg-3 col-md-6">
+                    <div class="feature-item">
+                      <i class="fas fa-mouse-pointer"></i>
+                      <h5>交互式操作</h5>
+                      <p>支持悬停查看、点击筛选、缩放等交互功能</p>
+                    </div>
+                  </div>
+                  <div class="col-lg-3 col-md-6">
+                    <div class="feature-item">
+                      <i class="fas fa-sync-alt"></i>
+                      <h5>实时更新</h5>
+                      <p>通过WebSocket实现图表数据实时更新</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="gradient-button mt-4">
+                  <a href="#" onclick="loadSampleCharts()">加载示例图表</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 其余部分保持不变 -->
+  <!-- 客户评价部分 -->
+  <div id="clients" class="the-clients">
+    <!-- ... 客户评价内容保持不变 ... -->
+  </div>
+
+  <!-- 价格表部分 -->
+  <div id="pricing" class="pricing-tables">
+    <!-- ... 价格表内容保持不变 ... -->
+  </div> 
+
+  <!-- 页脚部分 -->
+  <footer id="newsletter">
+    <!-- ... 页脚内容保持不变 ... -->
+  </footer>
+
+  <!-- Scripts -->
+  <script src="static/assets/vendor/jquery/jquery.min.js"></script>
+  <script src="static/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="static/assets/js/owl-carousel.js"></script>
+  <script src="static/assets/js/animation.js"></script>
+  <script src="static/assets/js/imagesloaded.js"></script>
+  <script src="static/assets/js/popup.js"></script>
+  <script src="static/assets/js/custom.js"></script>
+  
+  <script>
+    // 平滑滚动到对应部分
+    $(document).ready(function() {
+      $('.scroll-to-section').on('click', function(e) {
+        e.preventDefault();
+        var target = $(this).attr('href');
+        
+        // 如果是主页
+        if(target === '#home') {
+          $('html, body').animate({
+            scrollTop: 0
+          }, 800);
+        } 
+        // 如果是数据列表
+        else if(target === '/index') {
+          $('html, body').animate({
+            scrollTop: $(window).height() // 滚动到第二页
+          }, 800);
+        }
+        // 如果是图表
+        else if(target === '/chart') {
+          $('html, body').animate({
+            scrollTop: $(window).height() * 2 // 滚动到第三页
+          }, 800);
+        }
+        // 其他部分
+        else {
+          $('html, body').animate({
+            scrollTop: $(target).offset().top - 80 // 减去导航栏高度
+          }, 800);
+        }
+      });
+      
+      // 监听滚动，更新导航栏激活状态和样式
+      $(window).on('scroll', function() {
+        var scrollPosition = $(window).scrollTop();
+        var windowHeight = $(window).height();
+        
+        // 更新滚动进度条
+        var scrollPercent = (scrollPosition / ($(document).height() - $(window).height())) * 100;
+        $('#scrollProgress').css('width', scrollPercent + '%');
+        
+        // 判断当前所在页面
+        if (scrollPosition < windowHeight * 0.5) {
+          // 第一页
+          updateActiveNav('#home');
+          
+          // 主页导航栏特殊样式
+          if (scrollPosition > 50) {
+            $('.header-area').addClass('header-sticky');
+          } else {
+            $('.header-area').removeClass('header-sticky');
+          }
+        } else if (scrollPosition < windowHeight * 1.5) {
+          // 第二页
+          updateActiveNav('/index');
+          $('.header-area').addClass('header-sticky');
+        } else if (scrollPosition < windowHeight * 2.5) {
+          // 第三页
+          updateActiveNav('/chart');
+          $('.header-area').addClass('header-sticky');
+        } else {
+          // 其他部分
+          $('.header-area').addClass('header-sticky');
+        }
+      });
+      
+      // 初始化页面时触发一次滚动事件
+      $(window).trigger('scroll');
+    });
+    
+    function updateActiveNav(target) {
+      $('.nav li').removeClass('active');
+      $('.nav li a[href="' + target + '"]').parent().addClass('active');
+    }
+    
+    // 示例函数
+    function viewUser(userId) {
+      alert('查看用户ID: ' + userId + ' 的详细信息\n\n在实际项目中，这里会跳转到用户详情页面或显示用户详情弹窗。');
+    }
+    
+    function loadMoreUsers() {
+      alert('加载更多用户数据\n\n在实际项目中，这里会通过AJAX请求更多用户数据并添加到表格中。');
+    }
+    
+    function loadMoreSales() {
+      alert('加载更多销售记录\n\n在实际项目中，这里会通过AJAX请求更多销售数据并添加到表格中。');
+    }
+    
+    function exportData(type) {
+      alert('导出 ' + (type === 'user' ? '用户' : '销售') + ' 数据为CSV文件\n\n在实际项目中，这里会生成并下载CSV文件。');
+    }
+    
+    function changeChartType(chartType, viewType) {
+      const typeNames = {
+        'bar': '柱状图',
+        'pie': '饼图',
+        'line': '折线图',
+        'radar': '雷达图',
+        'map': '地图'
+      };
+      
+      const viewNames = {
+        'monthly': '月度',
+        'quarterly': '季度',
+        'yearly': '年度',
+        '5years': '5年',
+        '3years': '3年',
+        'category': '类别',
+        'region': '区域',
+        'salesman': '销售员',
+        'performance': '性能指标',
+        'sales': '销售指标',
+        'china': '中国',
+        'province': '省份',
+        'world': '全球'
+      };
+      
+      alert('切换图表类型: ' + typeNames[chartType] + '\n视图模式: ' + viewNames[viewType] + '\n\n在实际项目中，这里会重新加载对应类型的图表数据。');
+    }
+    
+    function loadSampleCharts() {
+      alert('加载示例图表数据\n\n在实际项目中，这里会通过以下方式加载图表：\n\n1. 从后端API获取数据\n2. 使用前端图表库渲染\n3. 支持交互操作和动态更新');
+    }
+  </script>
+</body>
+</html>

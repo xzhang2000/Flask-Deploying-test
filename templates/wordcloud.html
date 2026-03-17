@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>豆瓣电影Top250 - 词云分析</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入WordCloud2.js库 -->
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
+    <style>
+        /* 复用主页样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e88e5;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 8px;
+            color: #ff6b35;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 30px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+            padding: 5px 0;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: #1e88e5;
+        }
+        
+        .nav-links a.active {
+            color: #1e88e5;
+            font-weight: 600;
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: #1e88e5;
+            bottom: 0;
+            left: 0;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background-color: #1e88e5;
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        /* 页面标题区域 */
+        .page-header {
+            padding: 50px 0 30px;
+            background-color: white;
+            margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .page-title {
+            text-align: center;
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .page-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* 词云区域样式 */
+        .wordcloud-section {
+            padding: 30px 0 60px;
+        }
+        
+        .wordcloud-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .wordcloud-main {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+            text-align: center;
+        }
+        
+        .wordcloud-controls {
+            flex: 0 0 300px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+        }
+        
+        .wordcloud-canvas-container {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        #wordcloud-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            font-weight: 600;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-label {
+            display: block;
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .color-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.active {
+            border-color: #2c3e50;
+            transform: scale(1.1);
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider-value {
+            min-width: 40px;
+            font-weight: 600;
+            color: #1e88e5;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1e88e5;
+            cursor: pointer;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.2s;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background-color: #0d7bd4;
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+        }
+        
+        /* 词频列表 */
+        .word-frequency {
+            margin-top: 40px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+        }
+        
+        .frequency-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .frequency-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .frequency-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        
+        .frequency-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        .frequency-word {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .frequency-count {
+            font-weight: 600;
+            color: #1e88e5;
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .loading i {
+            font-size: 3rem;
+            color: #1e88e5;
+            margin-bottom: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 提示信息 */
+        .info-box {
+            background-color: #e8f4fd;
+            border-left: 4px solid #1e88e5;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        
+        .info-title {
+            font-weight: 600;
+            color: #1e88e5;
+            margin-bottom: 5px;
+        }
+        
+        .info-text {
+            color: #555;
+            font-size: 0.95rem;
+        }
+        
+        /* 页脚样式 */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+        }
+        
+        footer p {
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .wordcloud-container {
+                flex-direction: column;
+            }
+            
+            .wordcloud-controls {
+                flex: 0 0 auto;
+            }
+            
+            .frequency-list {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 15px 0;
+            }
+            
+            .logo {
+                margin-bottom: 15px;
+            }
+            
+            .nav-links {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .nav-links li {
+                margin: 0 10px 5px;
+            }
+            
+            .page-title {
+                font-size: 1.8rem;
+            }
+            
+            .page-subtitle {
+                font-size: 1rem;
+                padding: 0 15px;
+            }
+            
+            .wordcloud-canvas-container {
+                height: 400px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .wordcloud-main, .wordcloud-controls, .word-frequency {
+            animation: fadeInUp 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-film"></i> MAMBA
+                </div>
+                <ul class="nav-links">
+                    <li><a href="/"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/movies"><i class="fas fa-film"></i> 电影</a></li>
+                    <li><a href="/rating"><i class="fas fa-star"></i> 评分</a></li>
+                    <li><a href="/wordcloud" class="active"><i class="fas fa-cloud"></i> 词云</a></li>
+                    <li><a href="/team"><i class="fas fa-users"></i> 团队</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面标题区域 -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="page-title">豆瓣电影Top250词云分析</h1>
+            <p class="page-subtitle">基于豆瓣电影Top250的经典台词/短评数据生成的可视化词云，展示高频词汇分布</p>
+        </div>
+    </section>
+
+    <!-- 词云区域 -->
+    <section class="wordcloud-section">
+        <div class="container">
+            <!-- 提示信息 -->
+            <div class="info-box">
+                <div class="info-title">数据说明</div>
+                <div class="info-text">本词云基于豆瓣电影Top250的经典台词/短评数据生成，共分析5693条文本数据。词云中词汇的大小表示其出现频率，频率越高，词汇显示越大。</div>
+            </div>
+            
+            <!-- 主内容区域 -->
+            <div class="wordcloud-container">
+                <!-- 词云展示区 -->
+                <div class="wordcloud-main">
+                    <div class="wordcloud-canvas-container">
+                        <!-- 加载动画 -->
+                        <div class="loading" id="loading">
+                            <i class="fas fa-spinner"></i>
+                            <p>正在生成词云...</p>
+                        </div>
+                        <!-- 词云画布 -->
+                        <canvas id="wordcloud-canvas" width="800" height="500"></canvas>
+                    </div>
+                    <p>词云基于豆瓣电影Top250的经典台词/短评生成，展示高频词汇</p>
+                </div>
+                
+                <!-- 控制面板 -->
+                <div class="wordcloud-controls">
+                    <h3 class="controls-title">词云设置</h3>
+                    
+                    <div class="control-group">
+                        <label class="control-label">颜色主题</label>
+                        <div class="color-options">
+                            <div class="color-option active" style="background: linear-gradient(135deg, #1e88e5, #0d47a1);" data-colors="['#1e88e5', '#0d47a1']"></div>
+                            <div class="color-option" style="background: linear-gradient(135deg, #ff6b35, #e53935);" data-colors="['#ff6b35', '#e53935']"></div>
+                            <div class="color-option" style="background: linear-gradient(135deg, #4caf50, #1b5e20);" data-colors="['#4caf50', '#1b5e20']"></div>
+                            <div class="color-option" style="background: linear-gradient(135deg, #9c27b0, #4a148c);" data-colors="['#9c27b0', '#4a148c']"></div>
+                            <div class="color-option" style="background: linear-gradient(135deg, #ff9800, #e65100);" data-colors="['#ff9800', '#e65100']"></div>
+                            <div class="color-option" style="background: linear-gradient(135deg, #00bcd4, #006064);" data-colors="['#00bcd4', '#006064']"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">词汇数量: <span id="word-count-value">100</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="word-count" min="20" max="200" value="100" step="10">
+                            <span class="slider-value" id="word-count-display">100</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">旋转角度: <span id="rotation-value">45</span>°</label>
+                        <div class="slider-container">
+                            <input type="range" id="rotation" min="0" max="90" value="45" step="15">
+                            <span class="slider-value" id="rotation-display">45</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">字体大小: <span id="size-value">10-60</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="min-size" min="10" max="40" value="10" step="5">
+                            <input type="range" id="max-size" min="30" max="100" value="60" step="5">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #888; margin-top: 5px;">
+                            <span>最小</span>
+                            <span>最大</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">形状</label>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="shape-circle" class="btn btn-secondary" style="flex: 1;">圆形</button>
+                            <button id="shape-rect" class="btn" style="flex: 1;">矩形</button>
+                            <button id="shape-cardioid" class="btn" style="flex: 1;">心形</button>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button id="generate-btn" class="btn"><i class="fas fa-redo"></i> 重新生成</button>
+                        <button id="export-btn" class="btn btn-secondary"><i class="fas fa-download"></i> 导出图片</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 词频列表 -->
+            <div class="word-frequency">
+                <h3 class="frequency-title">高频词汇 TOP 50</h3>
+                <div class="frequency-list" id="frequency-list">
+                    <!-- 词频数据将通过JavaScript动态加载 -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <p>© 2023 MAMBA团队 - 豆瓣电影Top250数据分析项目</p>
+            <p>本页面仅用于展示项目成果，数据来源于豆瓣电影</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript代码 -->
+    <script>
+        // 全局变量
+        let wordData = [];
+        let wordFrequency = [];
+        let currentColors = ['#1e88e5', '#0d47a1'];
+        let currentShape = 'circle';
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载词云数据
+            loadWordCloudData();
+            
+            // 绑定控制面板事件
+            bindControls();
+            
+            // 绑定导出按钮事件
+            document.getElementById('export-btn').addEventListener('click', exportWordCloud);
+            
+            // 绑定重新生成按钮事件
+            document.getElementById('generate-btn').addEventListener('click', generateWordCloud);
+        });
+        
+        // 从后端API加载词云数据
+        function loadWordCloudData() {
+            showLoading(true);
+            
+            // 在实际应用中，这里应该通过fetch从Flask后端获取数据
+            // fetch('/api/wordcloud')
+            //   .then(response => response.json())
+            //   .then(data => {
+            //       wordData = data.words;
+            //       wordFrequency = data.frequency;
+            //       generateWordCloud();
+            //       renderFrequencyList();
+            //       showLoading(false);
+            //   })
+            //   .catch(error => {
+            //       console.error('加载词云数据失败:', error);
+            //       showLoading(false);
+            //   });
+            
+            // 模拟API调用延迟
+            setTimeout(() => {
+                // 模拟从后端获取数据
+                const mockData = generateMockWordData();
+                wordData = mockData.words;
+                wordFrequency = mockData.frequency;
+                
+                // 生成词云
+                generateWordCloud();
+                
+                // 渲染词频列表
+                renderFrequencyList();
+                
+                showLoading(false);
+            }, 800);
+        }
+        
+        // 生成词云
+        function generateWordCloud() {
+            const canvas = document.getElementById('wordcloud-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 获取控制面板参数
+            const wordCount = parseInt(document.getElementById('word-count').value);
+            const rotation = parseInt(document.getElementById('rotation').value);
+            const minSize = parseInt(document.getElementById('min-size').value);
+            const maxSize = parseInt(document.getElementById('max-size').value);
+            
+            // 准备词云数据（只取前N个词）
+            const wordDataSlice = wordData.slice(0, wordCount);
+            
+            // 配置词云选项
+            const options = {
+                list: wordDataSlice,
+                gridSize: Math.round(16 * canvas.width / 1024),
+                weightFactor: function (size) {
+                    // 根据词汇频率计算字体大小
+                    return Math.max(minSize, Math.min(maxSize, size));
+                },
+                fontFamily: 'Microsoft YaHei, SimHei, sans-serif',
+                color: function (word, weight) {
+                    // 根据权重选择颜色
+                    const colorIndex = Math.floor(Math.random() * currentColors.length);
+                    return currentColors[colorIndex];
+                },
+                rotateRatio: rotation / 90, // 旋转比例
+                rotationSteps: 2,
+                backgroundColor: '#ffffff',
+                shape: currentShape,
+                ellipticity: currentShape === 'cardioid' ? 1 : 0.65,
+                minSize: minSize
+            };
+            
+            // 生成词云
+            try {
+                WordCloud(canvas, options);
+            } catch (error) {
+                console.error('生成词云时出错:', error);
+                alert('生成词云时出错，请重试');
+            }
+        }
+        
+        // 渲染词频列表
+        function renderFrequencyList() {
+            const frequencyList = document.getElementById('frequency-list');
+            frequencyList.innerHTML = '';
+            
+            // 只显示前50个高频词
+            const topWords = wordFrequency.slice(0, 50);
+            
+            topWords.forEach(word => {
+                const item = document.createElement('div');
+                item.className = 'frequency-item';
+                item.innerHTML = `
+                    <span class="frequency-word">${word.text}</span>
+                    <span class="frequency-count">${word.size}</span>
+                `;
+                frequencyList.appendChild(item);
+            });
+        }
+        
+        // 绑定控制面板事件
+        function bindControls() {
+            // 颜色主题选择
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除所有激活状态
+                    document.querySelectorAll('.color-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    
+                    // 激活当前选项
+                    this.classList.add('active');
+                    
+                    // 更新颜色
+                    const colors = JSON.parse(this.getAttribute('data-colors'));
+                    currentColors = colors;
+                    
+                    // 重新生成词云
+                    generateWordCloud();
+                });
+            });
+            
+            // 词汇数量滑块
+            const wordCountSlider = document.getElementById('word-count');
+            const wordCountDisplay = document.getElementById('word-count-display');
+            
+            wordCountSlider.addEventListener('input', function() {
+                wordCountDisplay.textContent = this.value;
+                generateWordCloud();
+            });
+            
+            // 旋转角度滑块
+            const rotationSlider = document.getElementById('rotation');
+            const rotationDisplay = document.getElementById('rotation-display');
+            
+            rotationSlider.addEventListener('input', function() {
+                rotationDisplay.textContent = this.value;
+                generateWordCloud();
+            });
+            
+            // 字体大小滑块
+            const minSizeSlider = document.getElementById('min-size');
+            const maxSizeSlider = document.getElementById('max-size');
+            const sizeValueDisplay = document.getElementById('size-value');
+            
+            function updateSizeDisplay() {
+                const min = parseInt(minSizeSlider.value);
+                const max = parseInt(maxSizeSlider.value);
+                sizeValueDisplay.textContent = `${min}-${max}`;
+                generateWordCloud();
+            }
+            
+            minSizeSlider.addEventListener('input', updateSizeDisplay);
+            maxSizeSlider.addEventListener('input', updateSizeDisplay);
+            
+            // 形状按钮
+            document.getElementById('shape-circle').addEventListener('click', function() {
+                setActiveShape('circle', this);
+            });
+            
+            document.getElementById('shape-rect').addEventListener('click', function() {
+                setActiveShape('rect', this);
+            });
+            
+            document.getElementById('shape-cardioid').addEventListener('click', function() {
+                setActiveShape('cardioid', this);
+            });
+        }
+        
+        // 设置激活的形状
+        function setActiveShape(shape, button) {
+            currentShape = shape;
+            
+            // 更新按钮样式
+            const shapeButtons = document.querySelectorAll('[id^="shape-"]');
+            shapeButtons.forEach(btn => {
+                if (btn.id === button.id) {
+                    btn.classList.remove('btn');
+                    btn.classList.add('btn-secondary');
+                } else {
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn');
+                }
+            });
+            
+            // 重新生成词云
+            generateWordCloud();
+        }
+        
+        // 导出词云图片
+        function exportWordCloud() {
+            const canvas = document.getElementById('wordcloud-canvas');
+            const link = document.createElement('a');
+            link.download = '豆瓣电影Top250词云.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // 显示/隐藏加载动画
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+        
+        // 生成模拟词云数据
+        function generateMockWordData() {
+            // 高频电影词汇
+            const movieWords = [
+                {text: "电影", size: 120},
+                {text: "人生", size: 100},
+                {text: "爱情", size: 95},
+                {text: "希望", size: 90},
+                {text: "自由", size: 88},
+                {text: "梦想", size: 85},
+                {text: "时间", size: 82},
+                {text: "生活", size: 80},
+                {text: "世界", size: 78},
+                {text: "生命", size: 75},
+                {text: "青春", size: 72},
+                {text: "朋友", size: 70},
+                {text: "家庭", size: 68},
+                {text: "回忆", size: 65},
+                {text: "勇气", size: 63},
+                {text: "幸福", size: 60},
+                {text: "痛苦", size: 58},
+                {text: "成长", size: 55},
+                {text: "选择", size: 53},
+                {text: "命运", size: 50},
+                {text: "人性", size: 48},
+                {text: "社会", size: 45},
+                {text: "历史", size: 43},
+                {text: "战争", size: 40},
+                {text: "和平", size: 38},
+                {text: "正义", size: 35},
+                {text: "真理", size: 33},
+                {text: "艺术", size: 30},
+                {text: "音乐", size: 28},
+                {text: "美丽", size: 25},
+                {text: "悲剧", size: 23},
+                {text: "喜剧", size: 20},
+                {text: "感动", size: 18},
+                {text: "经典", size: 15},
+                {text: "导演", size: 12},
+                {text: "演员", size: 10},
+                {text: "故事", size: 95},
+                {text: "情节", size: 85},
+                {text: "画面", size: 75},
+                {text: "音乐", size: 70},
+                {text: "表演", size: 65},
+                {text: "导演", size: 60},
+                {text: "演员", size: 55},
+                {text: "剧本", size: 50},
+                {text: "摄影", size: 45},
+                {text: "剪辑", size: 40},
+                {text: "特效", size: 35},
+                {text: "配乐", size: 30},
+                {text: "台词", size: 25},
+                {text: "角色", size: 20},
+                {text: "感动", size: 85},
+                {text: "流泪", size: 75},
+                {text: "震撼", size: 70},
+                {text: "思考", size: 65},
+                {text: "回忆", size: 60},
+                {text: "启发", size: 55},
+                {text: "经典", size: 50},
+                {text: "必看", size: 45},
+                {text: "推荐", size: 40},
+                {text: "精彩", size: 35},
+                {text: "深刻", size: 30},
+                {text: "感人", size: 25},
+                {text: "震撼", size: 20},
+                {text: "思考", size: 15},
+                {text: "人生", size: 90},
+                {text: "命运", size: 80},
+                {text: "选择", size: 70},
+                {text: "坚持", size: 65},
+                {text: "梦想", size: 60},
+                {text: "现实", size: 55},
+                {text: "理想", size: 50},
+                {text: "奋斗", size: 45},
+                {text: "成功", size: 40},
+                {text: "失败", size: 35},
+                {text: "挫折", size: 30},
+                {text: "希望", size: 25},
+                {text: "绝望", size: 20},
+                {text: "爱情", size: 85},
+                {text: "亲情", size: 75},
+                {text: "友情", size: 70},
+                {text: "家庭", size: 65},
+                {text: "父母", size: 60},
+                {text: "孩子", size: 55},
+                {text: "兄弟", size: 50},
+                {text: "姐妹", size: 45},
+                {text: "恋人", size: 40},
+                {text: "分离", size: 35},
+                {text: "重逢", size: 30},
+                {text: "牺牲", size: 25},
+                {text: "奉献", size: 20},
+                {text: "社会", size: 75},
+                {text: "政治", size: 65},
+                {text: "历史", size: 60},
+                {text: "战争", size: 55},
+                {text: "和平", size: 50},
+                {text: "正义", size: 45},
+                {text: "公平", size: 40},
+                {text: "自由", size: 35},
+                {text: "民主", size: 30},
+                {text: "权力", size: 25},
+                {text: "腐败", size: 20},
+                {text: "革命", size: 15},
+                {text: "变革", size: 10}
+            ];
+            
+            return {
+                words: movieWords,
+                frequency: movieWords.sort((a, b) => b.size - a.size)
+            };
+        }
+    </script>
+</body>
+</html>

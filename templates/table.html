@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>豆瓣电影Top250 - 数据列表</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 复用主页样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e88e5;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 8px;
+            color: #ff6b35;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+            padding: 5px 0;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #1e88e5;
+        }
+
+        .nav-links a.active {
+            color: #1e88e5;
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: #1e88e5;
+            bottom: 0;
+            left: 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background-color: #1e88e5;
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* 页面标题区域 */
+        .page-header {
+            padding: 50px 0 30px;
+            background-color: white;
+            margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* 电影表格区域 */
+        .movies-section {
+            padding: 30px 0 80px;
+        }
+
+        .table-container {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+
+        .movies-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        .movies-table thead {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        .movies-table th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .movies-table th:last-child {
+            border-right: none;
+        }
+
+        .movies-table tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .movies-table tbody tr:hover {
+            background-color: #f5f9ff;
+        }
+
+        .movies-table td {
+            padding: 16px 15px;
+            color: #555;
+            vertical-align: top;
+        }
+
+        .rank-cell {
+            font-weight: 700;
+            color: #ff6b35;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .title-cell {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .rating-cell {
+            color: #ff9800;
+            font-weight: 600;
+        }
+
+        .year-cell {
+            text-align: center;
+        }
+
+        .country-cell,
+        .type-cell {
+            text-align: center;
+        }
+
+        /* 分页控件 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #1e88e5;
+            color: white;
+            border-color: #1e88e5;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            margin: 0 15px;
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .page-size {
+            margin-left: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-size select {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 1rem;
+        }
+
+        /* 页脚样式 */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+        }
+
+        footer p {
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 15px 0;
+            }
+
+            .logo {
+                margin-bottom: 15px;
+            }
+
+            .nav-links {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .nav-links li {
+                margin: 0 10px 5px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .page-subtitle {
+                font-size: 1rem;
+                padding: 0 15px;
+            }
+
+            .table-container {
+                margin: 0 -20px;
+                border-radius: 0;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+            }
+
+            .page-size {
+                margin-left: 0;
+                margin-top: 15px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            color: #1e88e5;
+            margin-bottom: 15px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 高亮评分 */
+        .high-rating {
+            background-color: rgba(255, 193, 7, 0.15);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        /* 电影类型标签 */
+        .type-tag {
+            display: inline-block;
+            background-color: #e8f4fd;
+            color: #1e88e5;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-film"></i> DATA VISUALIZATION PRACTICE
+                </div>
+                <ul class="nav-links">
+                    <li><a href="/home"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/table"><i class="fas fa-film"></i> 数据列表</a></li>
+                    <li><a href="/team"><i class="fas fa-users"></i> 团队</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面标题区域 -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="page-title">本地DB数据列表可视化</h1>
+            <p class="page-subtitle">本页面展示了本地数据库文件可视化成列表，为保证性能和显示体验特增加了分页功能</p>
+        </div>
+    </section>
+
+    <!-- 电影表格区域 -->
+    <section class="movies-section">
+        <div class="container">
+            <!-- 加载动画 -->
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i>
+                <p>正在加载电影数据...</p>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="table-container">
+                <table class="movies-table">
+                    <thead>
+                        <tr>
+                            <th width="8%">排名</th>
+                            <th width="20%">电影名称</th>
+                            <th width="20%">其他名称</th>
+                            <th width="10%">评分</th>
+                            <th width="15%">评分人数</th>
+                            <th width="25%">评语</th>
+                        </tr>
+
+                        <!-- {% for movie in movies%}
+                        <tr>
+                            <th width="25%">{{movie[2]}}</th>
+                            <th width="8%">{{movie[3]}}</th>
+                            <th width="10%">{{movie[4]}}</th>
+                            <th width="20%">{{movie[5]}}</th>
+                            <th width="12%">{{movie[6]}}</th>
+                        </tr>
+                        {% endfor %} -->
+
+                    </thead>
+                    <!-- 修改表格的tbody部分 -->
+                    <tbody id="movies-table-body">
+                        {% for movie in movies %}
+                        <tr>
+                            <td class="rank-cell">{{ loop.index + (current_page - 1) * per_page }}</td>
+                            <td class="title-cell">{{ movie[2] }}</td>
+                            <td>{{ movie[3] }}</td>
+                            <td class="rating-cell">{{ movie[4] }}</td>
+                            <td class="year-cell">{{ movie[5] }}</td>
+                            <td>{{ movie[6] }}</td>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 修改分页控件部分 -->
+            <div class="pagination">
+                <button id="first-page" {% if current_page==1 %}disabled{% endif %}>首页</button>
+                <button id="prev-page" {% if current_page==1 %}disabled{% endif %}>上一页</button>
+                <span class="page-info" id="page-info">第 {{ current_page }} 页 / 共 {{ total_pages }} 页 (共 {{ total_count
+                    }} 条记录)</span>
+                <button id="next-page" {% if current_page==total_pages %}disabled{% endif %}>下一页</button>
+                <button id="last-page" {% if current_page==total_pages %}disabled{% endif %}>末页</button>
+
+                <div class="page-size">
+                    <span>每页显示：</span>
+                    <select id="page-size">
+                        <option value="10" {% if per_page==10 %}selected{% endif %}>10 条</option>
+                        <option value="20" {% if per_page==20 %}selected{% endif %}>20 条</option>
+                        <option value="50" {% if per_page==50 %}selected{% endif %}>50 条</option>
+                        <option value="100" {% if per_page==100 %}selected{% endif %}>100 条</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <!-- 页脚 -->
+            <footer>
+                <div class="container">
+                    <p>© 2026 xzhang2000@outlook.com - 数据分析项目</p>
+                    <p>本页面仅用于展示项目成果，数据来源于WEB</p>
+                </div>
+            </footer>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    // 获取当前URL参数
+                    const urlParams = new URLSearchParams(window.location.search);
+                    let currentPage = parseInt(urlParams.get('page')) || 1;
+                    let perPage = parseInt(urlParams.get('per_page')) || 20;
+
+                    // 页面大小更改事件
+                    document.getElementById('page-size').addEventListener('change', function () {
+                        perPage = parseInt(this.value);
+                        // 跳转到第1页并更新每页数量
+                        window.location.href = `/table?page=1&per_page=${perPage}`;
+                    });
+
+                    // 分页按钮点击事件
+                    document.getElementById('first-page').addEventListener('click', function () {
+                        if (!this.disabled) {
+                            window.location.href = `/table?page=1&per_page=${perPage}`;
+                        }
+                    });
+
+                    document.getElementById('prev-page').addEventListener('click', function () {
+                        if (!this.disabled && currentPage > 1) {
+                            window.location.href = `/table?page=${currentPage - 1}&per_page=${perPage}`;
+                        }
+                    });
+
+                    document.getElementById('next-page').addEventListener('click', function () {
+                        if (!this.disabled) {
+                            window.location.href = `/table?page=${currentPage + 1}&per_page=${perPage}`;
+                        }
+                    });
+
+                    document.getElementById('last-page').addEventListener('click', function () {
+                        if (!this.disabled) {
+                            // total_pages是后端传递的变量
+                            window.location.href = `/table?page=${total_pages}&per_page=${perPage}`;
+                        }
+                    });
+
+                    // 更新加载动画（可选）
+                    setTimeout(function () {
+                        document.getElementById('loading').style.display = 'none';
+                        document.querySelector('.table-container').style.display = 'block';
+                    }, 300);
+                });
+            </script>
+
+</body>
+
+</html>

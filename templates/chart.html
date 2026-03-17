@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电影评分分布 - DATA VISUALIZATION PRACTICE</title>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        /* 保持相同的导航栏样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏样式（与table.html完全相同） */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e88e5;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 8px;
+            color: #ff6b35;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 25px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: color 0.3s;
+            padding: 5px 0;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: #1e88e5;
+        }
+        
+        .nav-links a.active {
+            color: #1e88e5;
+            font-weight: 600;
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: #1e88e5;
+            bottom: 0;
+            left: 0;
+        }
+        
+        /* 页面标题 */
+        .page-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin: 30px 0 20px;
+            font-weight: 600;
+        }
+        
+        /* 简要统计信息 */
+        .stats-summary {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e88e5;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* 图表容器 */
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+        }
+        
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #scoreChart {
+            width: 100%;
+            height: 500px;
+        }
+        
+        /* 页脚 */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+        }
+        
+        footer p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin: 5px 0;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 15px 0;
+            }
+            
+            .logo {
+                margin-bottom: 15px;
+            }
+            
+            .nav-links {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .nav-links li {
+                margin: 0 10px 5px;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .stats-summary {
+                gap: 15px;
+            }
+            
+            .stat-item {
+                min-width: 120px;
+                padding: 12px 20px;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            
+            #scoreChart {
+                height: 400px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #scoreChart {
+                height: 350px;
+            }
+            
+            .stat-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏（与table.html保持一致） -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-film"></i> DATA VISUALIZATION PRACTICE
+                </div>
+                <ul class="nav-links">
+                    <li><a href="/home"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/table"><i class="fas fa-film"></i> 电影列表</a></li>
+                    <li><a href="/chart" class="active"><i class="fas fa-star"></i> 评分分析</a></li>
+                    <li><a href="/wordcloud"><i class="fas fa-cloud"></i> 词云分析</a></li>
+                    <li><a href="/team"><i class="fas fa-users"></i> 团队介绍</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面内容 -->
+    <div class="container">
+        <h1 class="page-title">豆瓣电影Top250评分分布分析</h1>
+        
+        <!-- 简要统计信息 -->
+        <div class="stats-summary">
+            <div class="stat-item">
+                <div class="stat-value">{{ total_movies }}</div>
+                <div class="stat-label">电影总数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ avg_score }}</div>
+                <div class="stat-label">平均评分</div>
+            </div>
+        </div>
+        
+        <!-- 柱状图容器 -->
+        <div class="chart-container">
+            <div class="chart-title">评分分布柱状图</div>
+            <div id="scoreChart"></div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <p>© 2024 MAMBA团队 - 豆瓣电影Top250数据分析项目</p>
+            <p>本页面仅用于展示项目成果，数据来源于豆瓣电影</p>
+        </div>
+    </footer>
+
+    <!-- Font Awesome图标库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+
+    <!-- ECharts图表 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化ECharts实例
+            const chart = echarts.init(document.getElementById('scoreChart'));
+            
+            // 图表配置
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    },
+                    formatter: function(params) {
+                        return `${params[0].name}<br/>电影数量: ${params[0].value}部`;
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: {{ categories|tojson }},
+                    axisLabel: {
+                        fontSize: 12,
+                        color: '#666'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#ddd'
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '电影数量（部）',
+                    nameTextStyle: {
+                        fontSize: 12,
+                        padding: [0, 0, 0, 10]
+                    },
+                    axisLabel: {
+                        fontSize: 12,
+                        color: '#666'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#ddd'
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#f0f0f0',
+                            type: 'dashed'
+                        }
+                    }
+                },
+                series: [{
+                    name: '电影数量',
+                    type: 'bar',
+                    data: {{ counts|tojson }},
+                    itemStyle: {
+                        color: function(params) {
+                            // 根据评分区间设置不同颜色
+                            const scoreRanges = {{ categories|tojson }};
+                            const index = params.dataIndex;
+                            
+                            if (scoreRanges[index].includes('9.0')) {
+                                return '#1e88e5';  // 蓝色 - 高分段
+                            } else if (scoreRanges[index].includes('8.0')) {
+                                return '#43a047';  // 绿色 - 中高分段
+                            } else if (scoreRanges[index].includes('7.0')) {
+                                return '#ffb300';  // 黄色 - 中分段
+                            } else if (scoreRanges[index].includes('6.0')) {
+                                return '#ff6b35';  // 橙色 - 中低分段
+                            } else {
+                                return '#e53935';  // 红色 - 低分段
+                            }
+                        },
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    barWidth: '60%',
+                    label: {
+                        show: true,
+                        position: 'top',
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        color: '#333'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowColor: 'rgba(0, 0, 0, 0.5)',
+                            shadowBlur: 10
+                        }
+                    }
+                }]
+            };
+            
+            // 设置图表配置
+            chart.setOption(option);
+            
+            // 响应窗口大小变化
+            window.addEventListener('resize', function() {
+                chart.resize();
+            });
+        });
+    </script>
+</body>
+</html>

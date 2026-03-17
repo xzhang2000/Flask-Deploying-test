@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>团队成员 - 数据可视化项目</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 基础样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 顶部导航栏样式 */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e88e5;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 8px;
+            color: #ff6b35;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+            padding: 5px 0;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #1e88e5;
+        }
+
+        .nav-links a.active {
+            color: #1e88e5;
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: #1e88e5;
+            bottom: 0;
+            left: 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background-color: #1e88e5;
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* 页面标题区域样式 */
+        .page-header {
+            padding: 60px 0 40px;
+            text-align: center;
+            background-color: white;
+            margin-bottom: 40px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* 团队成员区域样式 */
+        .team-section {
+            padding: 40px 0 80px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 50px;
+            font-weight: 600;
+        }
+
+        .team-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .team-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .team-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: white;
+        }
+
+        .team-card-1 .team-avatar {
+            background: linear-gradient(135deg, #ff6b35, #ff9800);
+        }
+
+        .team-card-2 .team-avatar {
+            background: linear-gradient(135deg, #1e88e5, #0d47a1);
+        }
+
+        .team-card-3 .team-avatar {
+            background: linear-gradient(135deg, #4caf50, #1b5e20);
+        }
+
+        .team-card-4 .team-avatar {
+            background: linear-gradient(135deg, #9c27b0, #4a148c);
+        }
+
+        .team-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .team-role {
+            font-size: 1.2rem;
+            color: #1e88e5;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .team-bio {
+            font-size: 1rem;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .team-skills {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            background-color: #e8f4fd;
+            color: #1e88e5;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .team-contact {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            color: #666;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .contact-icon:hover {
+            background-color: #1e88e5;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* 页脚样式 */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+        }
+
+        footer p {
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 15px 0;
+            }
+
+            .logo {
+                margin-bottom: 15px;
+            }
+
+            .nav-links {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .nav-links li {
+                margin: 0 10px 5px;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .page-header p {
+                font-size: 1rem;
+            }
+
+            .team-cards {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .team-card {
+                padding: 30px 20px;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-header,
+        .team-card {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .team-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .team-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .team-card:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-film"></i> DATA VISUALIZATION PRACTICE
+                </div>
+                <ul class="nav-links">
+                    <li><a href="/home"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/table"><i class="fas fa-film"></i> 数据列表</a></li>
+                    <li><a href="/team" class="active"><i class="fas fa-users"></i> 团队</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面标题区域 -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Team Members</h1>
+            <p>致力于通过数据洞察发现价值，创造有意义的可视化体验。</p>
+        </div>
+    </section>
+
+    <!-- 团队成员区域 -->
+    <section class="team-section">
+        <div class="container">
+            <h2 class="section-title">团队成员介绍</h2>
+            <div class="team-cards">
+                <!-- 成员1 -->
+                <div class="team-card team-card-1">
+                    <div class="team-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3 class="team-name">张祥霖</h3>
+                    <div class="team-role">Python developer</div>
+                    <p class="team-bio">The only Teammember LOL</p>
+                    <div class="team-skills">
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">DataStructures And Algorithms</span>
+                        <span class="skill-tag">JavaScript</span>
+                        <span class="skill-tag">JavaScript</span>
+                        <span class="skill-tag">PM</span>
+                    </div>
+                    <div class="team-contact">
+                        <a href="mailto:zhangsan@example.com" class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                        <a href="https://github.com" target="_blank" class="contact-icon">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://linkedin.com" target="_blank" class="contact-icon">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <p>© 2026 xzhang2000@outlook.com - 数据分析项目</p>
+            <p>本页面仅用于展示项目成果，数据来源于WEB</p>
+        </div>
+    </footer>
+
+    <!-- 简单交互效果 -->
+    <script>
+        // 为团队成员卡片添加鼠标悬停动画
+        document.querySelectorAll('.team-card').forEach(card => {
+            card.addEventListener('mouseenter', function () {
+                const icon = this.querySelector('.team-avatar i');
+                icon.style.transform = 'scale(1.1)';
+                icon.style.transition = 'transform 0.3s';
+            });
+
+            card.addEventListener('mouseleave', function () {
+                const icon = this.querySelector('.team-avatar i');
+                icon.style.transform = 'scale(1)';
+            });
+        });
+
+        // 设置当前页面导航激活状态
+        window.addEventListener('DOMContentLoaded', () => {
+            // 获取当前页面路径
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-links a');
+
+            navLinks.forEach(link => {
+                // 移除所有激活状态
+                link.classList.remove('active');
+
+                // 根据路径设置激活状态
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
