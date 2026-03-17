@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>豆瓣电影Top250 - 数据列表</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 复用主页样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e88e5;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 8px;
+            color: #ff6b35;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+            padding: 5px 0;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #1e88e5;
+        }
+
+        .nav-links a.active {
+            color: #1e88e5;
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: #1e88e5;
+            bottom: 0;
+            left: 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background-color: #1e88e5;
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* 页面标题区域 */
+        .page-header {
+            padding: 50px 0 30px;
+            background-color: white;
+            margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* 电影表格区域 */
+        .movies-section {
+            padding: 30px 0 80px;
+        }
+
+        .table-container {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+
+        .movies-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        .movies-table thead {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        .movies-table th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .movies-table th:last-child {
+            border-right: none;
+        }
+
+        .movies-table tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .movies-table tbody tr:hover {
+            background-color: #f5f9ff;
+        }
+
+        .movies-table td {
+            padding: 16px 15px;
+            color: #555;
+            vertical-align: top;
+        }
+
+        .rank-cell {
+            font-weight: 700;
+            color: #ff6b35;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .title-cell {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .rating-cell {
+            color: #ff9800;
+            font-weight: 600;
+        }
+
+        .year-cell {
+            text-align: center;
+        }
+
+        .country-cell,
+        .type-cell {
+            text-align: center;
+        }
+
+        /* 分页控件 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #1e88e5;
+            color: white;
+            border-color: #1e88e5;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            margin: 0 15px;
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .page-size {
+            margin-left: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-size select {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 1rem;
+        }
+
+        /* 页脚样式 */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+        }
+
+        footer p {
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 15px 0;
+            }
+
+            .logo {
+                margin-bottom: 15px;
+            }
+
+            .nav-links {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .nav-links li {
+                margin: 0 10px 5px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .page-subtitle {
+                font-size: 1rem;
+                padding: 0 15px;
+            }
+
+            .table-container {
+                margin: 0 -20px;
+                border-radius: 0;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+            }
+
+            .page-size {
+                margin-left: 0;
+                margin-top: 15px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            color: #1e88e5;
+            margin-bottom: 15px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 高亮评分 */
+        .high-rating {
+            background-color: rgba(255, 193, 7, 0.15);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        /* 电影类型标签 */
+        .type-tag {
+            display: inline-block;
+            background-color: #e8f4fd;
+            color: #1e88e5;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-film"></i> DATA VISUALIZATION PRACTICE
+                </div>
+                <ul class="nav-links">
+                    <li><a href="/home"><i class="fas fa-home"></i> 首页</a></li>
+                    <li><a href="/table"><i class="fas fa-film"></i> 数据列表</a></li>
+                    <li><a href="/team"><i class="fas fa-users"></i> 团队</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 页面标题区域 -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="page-title">本地DB数据列表可视化</h1>
+            <p class="page-subtitle">本页面展示了本地数据库文件可视化成列表，为保证性能和显示体验特增加了分页功能</p>
+        </div>
+    </section>
+
+    <!-- 电影表格区域 -->
+    <section class="movies-section">
+        <div class="container">
+            <!-- 加载动画 -->
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i>
+                <p>正在加载电影数据...</p>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="table-container">
+                <table class="movies-table">
+                    <thead>
+                        <tr>
+                            <th width="8%">排名</th>
+                            <th width="20%">电影名称</th>
+                            <th width="20%">其他名称</th>
+                            <th width="10%">评分</th>
+                            <th width="15%">评分人数</th>
+                            <th width="25%">评语</th>
+                        </tr>
+
+                        <!-- 
+                        <tr>
+                            <th width="25%">肖申克的救赎</th>
+                            <th width="8%"> / The Shawshank Redemption</th>
+                            <th width="10%">9.7</th>
+                            <th width="20%">3241890</th>
+                            <th width="12%">希望让人自由。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">霸王别姬</th>
+                            <th width="8%"></th>
+                            <th width="10%">9.6</th>
+                            <th width="20%">2392532</th>
+                            <th width="12%">风华绝代。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">泰坦尼克号</th>
+                            <th width="8%"> / Titanic</th>
+                            <th width="10%">9.5</th>
+                            <th width="20%">2463440</th>
+                            <th width="12%">失去的才是永恒的。 </th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">阿甘正传</th>
+                            <th width="8%"> / Forrest Gump</th>
+                            <th width="10%">9.5</th>
+                            <th width="20%">2401706</th>
+                            <th width="12%">一部美国近现代史。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">千与千寻</th>
+                            <th width="8%"> / 千と千尋の神隠し</th>
+                            <th width="10%">9.4</th>
+                            <th width="20%">2503475</th>
+                            <th width="12%">最好的宫崎骏，最好的久石让。 </th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">美丽人生</th>
+                            <th width="8%"> / La vita è bella</th>
+                            <th width="10%">9.5</th>
+                            <th width="20%">1464241</th>
+                            <th width="12%">最美的谎言。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">星际穿越</th>
+                            <th width="8%"> / Interstellar</th>
+                            <th width="10%">9.4</th>
+                            <th width="20%">2143743</th>
+                            <th width="12%">爱是一种力量，让我们超越时空感知它的存在。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">这个杀手不太冷</th>
+                            <th width="8%"> / Léon</th>
+                            <th width="10%">9.4</th>
+                            <th width="20%">2525834</th>
+                            <th width="12%">怪蜀黍和小萝莉不得不说的故事。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">盗梦空间</th>
+                            <th width="8%"> / Inception</th>
+                            <th width="10%">9.4</th>
+                            <th width="20%">2296431</th>
+                            <th width="12%">诺兰给了我们一场无法盗取的梦。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">楚门的世界</th>
+                            <th width="8%"> / The Truman Show</th>
+                            <th width="10%">9.4</th>
+                            <th width="20%">1986048</th>
+                            <th width="12%">如果再也不能见到你，祝你早安，午安，晚安。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">辛德勒的名单</th>
+                            <th width="8%"> / Schindler&#39;s List</th>
+                            <th width="10%">9.5</th>
+                            <th width="20%">1233673</th>
+                            <th width="12%">拯救一个人，就是拯救整个世界。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">忠犬八公的故事</th>
+                            <th width="8%"> / Hachi: A Dog&#39;s Tale</th>
+                            <th width="10%">9.4</th>
+                            <th width="20%">1526745</th>
+                            <th width="12%">永远都不能忘记你所爱的人。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">海上钢琴师</th>
+                            <th width="8%"> / La leggenda del pianista sull&#39;oceano</th>
+                            <th width="10%">9.3</th>
+                            <th width="20%">1858108</th>
+                            <th width="12%">每个人都要走一条自己坚定了的路，就算是粉身碎骨。 </th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">疯狂动物城</th>
+                            <th width="8%"> / Zootopia</th>
+                            <th width="10%">9.3</th>
+                            <th width="20%">2274257</th>
+                            <th width="12%">迪士尼给我们营造的乌托邦就是这样，永远善良勇敢，永远出乎意料。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">三傻大闹宝莱坞</th>
+                            <th width="8%"> / 3 Idiots</th>
+                            <th width="10%">9.2</th>
+                            <th width="20%">2053546</th>
+                            <th width="12%">英俊版憨豆，高情商版谢耳朵。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">机器人总动员</th>
+                            <th width="8%"> / WALL·E</th>
+                            <th width="10%">9.3</th>
+                            <th width="20%">1470292</th>
+                            <th width="12%">小瓦力，大人生。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">放牛班的春天</th>
+                            <th width="8%"> / Les choristes</th>
+                            <th width="10%">9.3</th>
+                            <th width="20%">1455791</th>
+                            <th width="12%">天籁一般的童声，是最接近上帝的存在。 </th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">无间道</th>
+                            <th width="8%"> / 無間道</th>
+                            <th width="10%">9.3</th>
+                            <th width="20%">1542966</th>
+                            <th width="12%">香港电影史上永不过时的杰作。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">控方证人</th>
+                            <th width="8%"> / Witness for the Prosecution</th>
+                            <th width="10%">9.6</th>
+                            <th width="20%">720477</th>
+                            <th width="12%">比利·怀德满分作品。</th>
+                        </tr>
+                        
+                        <tr>
+                            <th width="25%">大话西游之大圣娶亲</th>
+                            <th width="8%"> / 西遊記大結局之仙履奇緣</th>
+                            <th width="10%">9.2</th>
+                            <th width="20%">1690732</th>
+                            <th width="12%">一生所爱。</th>
+                        </tr>
+                         -->
+
+                    </thead>
+                    <!-- 修改表格的tbody部分 -->
+                    <tbody id="movies-table-body">
+                        
+                        <tr>
+                            <td class="rank-cell">1</td>
+                            <td class="title-cell">肖申克的救赎</td>
+                            <td> / The Shawshank Redemption</td>
+                            <td class="rating-cell">9.7</td>
+                            <td class="year-cell">3241890</td>
+                            <td>希望让人自由。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">2</td>
+                            <td class="title-cell">霸王别姬</td>
+                            <td></td>
+                            <td class="rating-cell">9.6</td>
+                            <td class="year-cell">2392532</td>
+                            <td>风华绝代。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">3</td>
+                            <td class="title-cell">泰坦尼克号</td>
+                            <td> / Titanic</td>
+                            <td class="rating-cell">9.5</td>
+                            <td class="year-cell">2463440</td>
+                            <td>失去的才是永恒的。 </td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">4</td>
+                            <td class="title-cell">阿甘正传</td>
+                            <td> / Forrest Gump</td>
+                            <td class="rating-cell">9.5</td>
+                            <td class="year-cell">2401706</td>
+                            <td>一部美国近现代史。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">5</td>
+                            <td class="title-cell">千与千寻</td>
+                            <td> / 千と千尋の神隠し</td>
+                            <td class="rating-cell">9.4</td>
+                            <td class="year-cell">2503475</td>
+                            <td>最好的宫崎骏，最好的久石让。 </td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">6</td>
+                            <td class="title-cell">美丽人生</td>
+                            <td> / La vita è bella</td>
+                            <td class="rating-cell">9.5</td>
+                            <td class="year-cell">1464241</td>
+                            <td>最美的谎言。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">7</td>
+                            <td class="title-cell">星际穿越</td>
+                            <td> / Interstellar</td>
+                            <td class="rating-cell">9.4</td>
+                            <td class="year-cell">2143743</td>
+                            <td>爱是一种力量，让我们超越时空感知它的存在。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">8</td>
+                            <td class="title-cell">这个杀手不太冷</td>
+                            <td> / Léon</td>
+                            <td class="rating-cell">9.4</td>
+                            <td class="year-cell">2525834</td>
+                            <td>怪蜀黍和小萝莉不得不说的故事。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">9</td>
+                            <td class="title-cell">盗梦空间</td>
+                            <td> / Inception</td>
+                            <td class="rating-cell">9.4</td>
+                            <td class="year-cell">2296431</td>
+                            <td>诺兰给了我们一场无法盗取的梦。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">10</td>
+                            <td class="title-cell">楚门的世界</td>
+                            <td> / The Truman Show</td>
+                            <td class="rating-cell">9.4</td>
+                            <td class="year-cell">1986048</td>
+                            <td>如果再也不能见到你，祝你早安，午安，晚安。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">11</td>
+                            <td class="title-cell">辛德勒的名单</td>
+                            <td> / Schindler&#39;s List</td>
+                            <td class="rating-cell">9.5</td>
+                            <td class="year-cell">1233673</td>
+                            <td>拯救一个人，就是拯救整个世界。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">12</td>
+                            <td class="title-cell">忠犬八公的故事</td>
+                            <td> / Hachi: A Dog&#39;s Tale</td>
+                            <td class="rating-cell">9.4</td>
+                            <td class="year-cell">1526745</td>
+                            <td>永远都不能忘记你所爱的人。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">13</td>
+                            <td class="title-cell">海上钢琴师</td>
+                            <td> / La leggenda del pianista sull&#39;oceano</td>
+                            <td class="rating-cell">9.3</td>
+                            <td class="year-cell">1858108</td>
+                            <td>每个人都要走一条自己坚定了的路，就算是粉身碎骨。 </td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">14</td>
+                            <td class="title-cell">疯狂动物城</td>
+                            <td> / Zootopia</td>
+                            <td class="rating-cell">9.3</td>
+                            <td class="year-cell">2274257</td>
+                            <td>迪士尼给我们营造的乌托邦就是这样，永远善良勇敢，永远出乎意料。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">15</td>
+                            <td class="title-cell">三傻大闹宝莱坞</td>
+                            <td> / 3 Idiots</td>
+                            <td class="rating-cell">9.2</td>
+                            <td class="year-cell">2053546</td>
+                            <td>英俊版憨豆，高情商版谢耳朵。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">16</td>
+                            <td class="title-cell">机器人总动员</td>
+                            <td> / WALL·E</td>
+                            <td class="rating-cell">9.3</td>
+                            <td class="year-cell">1470292</td>
+                            <td>小瓦力，大人生。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">17</td>
+                            <td class="title-cell">放牛班的春天</td>
+                            <td> / Les choristes</td>
+                            <td class="rating-cell">9.3</td>
+                            <td class="year-cell">1455791</td>
+                            <td>天籁一般的童声，是最接近上帝的存在。 </td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">18</td>
+                            <td class="title-cell">无间道</td>
+                            <td> / 無間道</td>
+                            <td class="rating-cell">9.3</td>
+                            <td class="year-cell">1542966</td>
+                            <td>香港电影史上永不过时的杰作。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">19</td>
+                            <td class="title-cell">控方证人</td>
+                            <td> / Witness for the Prosecution</td>
+                            <td class="rating-cell">9.6</td>
+                            <td class="year-cell">720477</td>
+                            <td>比利·怀德满分作品。</td>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="rank-cell">20</td>
+                            <td class="title-cell">大话西游之大圣娶亲</td>
+                            <td> / 西遊記大結局之仙履奇緣</td>
+                            <td class="rating-cell">9.2</td>
+                            <td class="year-cell">1690732</td>
+                            <td>一生所爱。</td>
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 修改分页控件部分 -->
+            <div class="pagination">
+                <button id="first-page" disabled>首页</button>
+                <button id="prev-page" disabled>上一页</button>
+                <span class="page-info" id="page-info">第 1 页 / 共 13 页 (共 250 条记录)</span>
+                <button id="next-page" >下一页</button>
+                <button id="last-page" >末页</button>
+
+                <div class="page-size">
+                    <span>每页显示：</span>
+                    <select id="page-size">
+                        <option value="10" >10 条</option>
+                        <option value="20" selected>20 条</option>
+                        <option value="50" >50 条</option>
+                        <option value="100" >100 条</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <!-- 页脚 -->
+            <footer>
+                <div class="container">
+                    <p>© 2026 xzhang2000@outlook.com - 数据分析项目</p>
+                    <p>本页面仅用于展示项目成果，数据来源于WEB</p>
+                </div>
+            </footer>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    // 获取当前URL参数
+                    const urlParams = new URLSearchParams(window.location.search);
+                    let currentPage = parseInt(urlParams.get('page')) || 1;
+                    let perPage = parseInt(urlParams.get('per_page')) || 20;
+
+                    // 页面大小更改事件
+                    document.getElementById('page-size').addEventListener('change', function () {
+                        perPage = parseInt(this.value);
+                        // 跳转到第1页并更新每页数量
+                        window.location.href = `/table?page=1&per_page=${perPage}`;
+                    });
+
+                    // 分页按钮点击事件
+                    document.getElementById('first-page').addEventListener('click', function () {
+                        if (!this.disabled) {
+                            window.location.href = `/table?page=1&per_page=${perPage}`;
+                        }
+                    });
+
+                    document.getElementById('prev-page').addEventListener('click', function () {
+                        if (!this.disabled && currentPage > 1) {
+                            window.location.href = `/table?page=${currentPage - 1}&per_page=${perPage}`;
+                        }
+                    });
+
+                    document.getElementById('next-page').addEventListener('click', function () {
+                        if (!this.disabled) {
+                            window.location.href = `/table?page=${currentPage + 1}&per_page=${perPage}`;
+                        }
+                    });
+
+                    document.getElementById('last-page').addEventListener('click', function () {
+                        if (!this.disabled) {
+                            // total_pages是后端传递的变量
+                            window.location.href = `/table?page=${total_pages}&per_page=${perPage}`;
+                        }
+                    });
+
+                    // 更新加载动画（可选）
+                    setTimeout(function () {
+                        document.getElementById('loading').style.display = 'none';
+                        document.querySelector('.table-container').style.display = 'block';
+                    }, 300);
+                });
+            </script>
+
+</body>
+
+</html>

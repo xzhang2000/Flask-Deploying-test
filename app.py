@@ -1,7 +1,10 @@
 import sqlite3
 from flask import Flask, render_template, request
+from flask_frozen import Freezer
 
 app = Flask(__name__)
+freezer = Freezer(app)  # 初始化Freezer
+
 
 
 @app.route("/")
@@ -129,4 +132,4 @@ def team():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    freezer.freeze()
